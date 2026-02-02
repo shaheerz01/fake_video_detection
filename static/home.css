@@ -1,0 +1,127 @@
+/* ================= GLOBAL ================= */
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f6f8fc;
+    color: #222;
+}
+
+/* ================= NAVBAR ================= */
+.home-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #ffffff;
+    padding: 14px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    z-index: 1000;
+}
+
+.home-nav .logo {
+    font-weight: 700;
+    font-size: 18px;
+}
+
+.home-nav .nav-links a {
+    margin-left: 15px;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* ================= HERO ================= */
+.hero-section {
+    padding-top: 70px;
+}
+
+.hero-text h1 {
+    font-size: 3.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.hero-text p {
+    margin-top: 20px;
+    font-size: 1.1rem;
+    color: #555;
+    max-width: 520px;
+}
+
+.hero-buttons {
+    margin-top: 30px;
+}
+
+/* ================= VIDEO ================= */
+.video-box {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+.video-box video {
+    width: 100%;
+    border-radius: 12px;
+}
+
+/* ================= HOW IT WORKS ================= */
+.info-section {
+    padding: 100px 0;
+    background: #ffffff;
+}
+
+.info-section h2 {
+    font-size: 2.4rem;
+    font-weight: 600;
+}
+
+.subtitle {
+    margin-top: 10px;
+    color: #666;
+}
+
+.info-card {
+    background: #f9fafc;
+    padding: 35px 25px;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    transition: 0.3s;
+    height: 100%;
+}
+
+.info-card:hover {
+    transform: translateY(-8px);
+}
+
+.info-card .step {
+    font-size: 14px;
+    font-weight: 700;
+    color: #3D5AFE;
+}
+
+.info-card h4 {
+    margin: 15px 0;
+    font-weight: 600;
+}
+
+/* ================= FOOTER ================= */
+.home-footer {
+    padding: 25px;
+    text-align: center;
+    background: #f0f2f6;
+    font-size: 14px;
+    color: #555;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+    .hero-text h1 {
+        font-size: 2.4rem;
+    }
+
+    .video-box {
+        margin-top: 40px;
+    }
+
+    .home-nav .nav-links {
+        display: none;
+    }
+}

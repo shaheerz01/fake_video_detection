@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+
+
+<nav>Dashboard</nav>
+
+<div class="container">
+    <h2>Hello, {{ username }} </h2>
+    <p>Select video to check authenticity</p>
+
+    <a href="/predict"><button>Detect Fake Video</button></a>
+    <a href="/logout">Logout</a>
+</div>
+
+</body>
+</html>

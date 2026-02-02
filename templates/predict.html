@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Video</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="predict-page">
+
+<nav>Upload Video</nav>
+
+<div class="container">
+    <h2>Upload Video</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="file-box">
+            <input type="file" name="video" accept=".mp4,.mkv,.mov,.avi" required>
+        </div>
+        <button type="submit">Predict</button>
+    </form>
+
+    <a href="/dashboard">Back to Dashboard</a>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediction Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="result-page">
+
+<nav>Result</nav>
+
+<div class="container">
+    <h2>Analysis Complete!</h2>
+    <p><strong>File:</strong> {{ filename }}</p>
+    <h1><strong>Status:</strong> {{ label }}</h1>
+    <h3><strong>Confidence:</strong> {{ confidence }}%</h3>
+
+    <a href="/predict">Test another video</a><br>
+    <a href="/dashboard">Back to Dashboard</a>
+</div>
+
+</body>
+</html>

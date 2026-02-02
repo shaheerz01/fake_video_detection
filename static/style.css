@@ -1,0 +1,191 @@
+/* === Modern Professional UI (Light Mode + Background Image) === */
+
+:root {
+    --primary: #3D5AFE;
+    --primary-hover: #2E46CC;
+    --text-dark: #111;
+    --text-light: #555;
+    --bg-light: rgba(255,255,255,0.85);
+    --radius: 10px;
+}
+
+/* Page background with image */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--text-dark);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* ===== PAGE-SPECIFIC BACKGROUNDS ===== */
+
+body.login-page {
+    background-image: url("images/login1.webp");
+}
+
+body.register-page {
+    background-image: url("images/AI_image.webp");
+}
+
+body.dashboard-page {
+    background-image: url("images/dashboard.png");
+}
+
+body.predict-page {
+    background-image: url("images/predict.webp");
+}
+
+body.result-page {
+    background-image: url("images/register.jpg");
+}
+
+
+/* Top Navigation */
+nav {
+    background: var(--primary);
+    color: white;
+    padding: 15px 25px;
+    font-size: 20px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Content box (Glass effect) */
+.container {
+    width: 400px;
+    margin: 80px auto;
+    background: var(--bg-light);
+    backdrop-filter: blur(8px);
+    padding: 35px;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+/* Typography */
+h1, h2, h3 {
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-dark);
+}
+
+p {
+    color: var(--text-light);
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+/* Inputs & Button */
+input, button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: var(--radius);
+    border: 1px solid #DDD;
+    font-size: 15px;
+}
+
+input:hover {
+    border-color: var(--primary);
+}
+
+button {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: var(--primary-hover);
+}
+
+/* Links */
+a {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 14px;
+    text-decoration: none;
+    color: var(--primary);
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Video upload box */
+.file-box {
+    border: 2px dashed #CCC;
+    padding: 30px;
+    border-radius: var(--radius);
+    margin: 20px 0;
+    background: rgba(255,255,255,0.7);
+    cursor: pointer;
+}
+
+/* ==== Auth Box (Login/Register) ==== */
+.auth-box {
+    width: 360px;               /* Adjust size here */
+    background: rgba(255, 255, 255, 0.9);
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    margin: auto;
+    position: relative;
+}
+
+/* Mobile responsive */
+@media (max-width: 420px) {
+    .auth-box {
+        width: 90%;
+        padding: 20px;
+    }
+}
+
+/* ==== Auth Box (Login/Register) ==== */
+.auth-box {
+    width: 525px;               /* Adjust size here */
+    background: rgba(255, 255, 255, 0.9);
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    margin: auto;
+    position: relative;
+}
+
+/* Mobile responsive */
+@media (max-width: 420px) {
+    .auth-box {
+        width: 90%;
+        padding: 20px;
+    }
+}
+
+/* ===== PASSWORD EYE ICON ===== */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 45px;
+}
+
+.password-wrapper i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #555;
+    font-size: 18px;
+}
+
+.password-wrapper i:hover {
+    color: #000;
+}
