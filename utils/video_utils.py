@@ -1,11 +1,14 @@
 # utils/video_utils.py
 
+
 import cv2
 from PIL import Image
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
 import numpy as np
+assert np.__version__.startswith("1."), "Incompatible NumPy version"
+
 import os
 
 # ---- Preprocessing Transform ----
