@@ -70,7 +70,7 @@ def predict_frames_tensor(frames_tensor, model, device='cpu'):
 
 
 # ---- Main prediction method used by Flask ----
-def predict_video_file(video_path, model, device='cpu', num_frames=8):
+def predict_video_file(video_path, model, device='cpu', num_frames=4):
     frames = sample_frames_from_video(video_path, num_frames)
     if len(frames) == 0:
         return None, None
