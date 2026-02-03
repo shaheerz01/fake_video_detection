@@ -7,14 +7,23 @@ import torch
 from model.model_def import VideoClassifier
 from utils.video_utils import predict_video_file
 
+# ==================== APP CONFIG ====================
 app = Flask(__name__)
-app.secret_key = "your_secret_key_123"
+app.secret_key = os.environ.get("SECRET_KEY", "dev_secret_key")
 
-# ==================== DATABASE CONFIG ====================
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Limit upload size (IMPORTANT for Render)
+app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 20 MB
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# ==================== DATABASE ====================
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///site.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
 
 # ==================== USER MODEL ====================
 class User(db.Model):
@@ -23,16 +32,13 @@ class User(db.Model):
     password = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
+# ==================== LOAD ML MODEL (CPU ONLY) ====================
+device = "cpu"
 
-bcrypt = Bcrypt(app)
-
-# ==================== LOAD ML MODEL ====================
-device = 'cpu'
 def load_model():
     model = VideoClassifier(pretrained=False)
-    model.load_state_dict(
-        torch.load("model/video_detector1.pth", map_location="cpu")
-    )
+    model_path = os.path.join(BASE_DIR, "model", "video_detector1.pth")
+    model.load_state_dict(torch.load(model_path, map_location="cpu"))
     model.eval()
     return model
 
@@ -42,169 +48,116 @@ model = load_model()
 def create_admin_account():
     admin = User.query.filter_by(username="admin").first()
     if not admin:
-        hashed = bcrypt.generate_password_hash("admin1223").decode('utf-8')
-        new_admin = User(username="admin", password=hashed)
-        db.session.add(new_admin)
+        hashed = bcrypt.generate_password_hash("admin1223").decode("utf-8")
+        db.session.add(User(username="admin", password=hashed))
         db.session.commit()
-        print("👑 Auto Admin Created: username=admin, password=admin1223")
-    else:
-        print("✔ Admin already exists")
-
 
 # ==================== ROUTES ====================
-@app.route('/')
+@app.route("/")
 def index():
-    if 'username' in session:
-        if session['username'] == "admin":
-            return redirect(url_for('admin'))
-        return redirect(url_for('dashboard'))
-    return render_template('index.html')
+    if "username" in session:
+        return redirect(url_for("admin" if session["username"] == "admin" else "dashboard"))
+    return render_template("index.html")
 
-
-# ---------- REGISTER ----------
-@app.route('/register', methods=['GET','POST'])
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = bcrypt.generate_password_hash(request.form['password']).decode('utf-8')
+    if request.method == "POST":
+        if User.query.filter_by(username=request.form["username"]).first():
+            flash("User already exists", "danger")
+            return redirect(url_for("register"))
 
-        existing = User.query.filter_by(username=username).first()
-        if existing:
-            flash("❌ User already exists!", "danger")
-            return redirect(url_for('register'))
-
-        new_user = User(username=username, password=password)
-        db.session.add(new_user)
+        hashed = bcrypt.generate_password_hash(request.form["password"]).decode("utf-8")
+        db.session.add(User(username=request.form["username"], password=hashed))
         db.session.commit()
-        flash("✔ Registration successful! Please login.", "success")
-        return redirect(url_for('login'))
+        flash("Registration successful", "success")
+        return redirect(url_for("login"))
 
-    return render_template('register.html')
+    return render_template("register.html")
 
-
-# ---------- LOGIN ----------
-@app.route('/login', methods=['GET','POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    if request.method == "POST":
+        user = User.query.filter_by(username=request.form["username"]).first()
+        if user and bcrypt.check_password_hash(user.password, request.form["password"]):
+            session["username"] = user.username
+            return redirect(url_for("admin" if user.username == "admin" else "dashboard"))
 
-        user = User.query.filter_by(username=username).first()
-        if user and bcrypt.check_password_hash(user.password, password):
+        flash("Invalid credentials", "danger")
+    return render_template("login.html")
 
-            session['username'] = username
-            flash("✔ Login Successful!", "success")
-
-            if username == "admin":
-                return redirect(url_for('admin'))
-            else:
-                return redirect(url_for('dashboard'))
-
-        flash("❌ Invalid username or password!", "danger")
-        return redirect(url_for('login'))
-
-    return render_template('login.html')
-
-
-# ---------- DASHBOARD ----------
-@app.route('/dashboard')
+@app.route("/dashboard")
 def dashboard():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    return render_template('dashboard.html', username=session['username'])
+    if "username" not in session:
+        return redirect(url_for("login"))
+    return render_template("dashboard.html", username=session["username"])
 
-
-# ---------- PREDICT ----------
-@app.route('/predict', methods=['GET','POST'])
+@app.route("/predict", methods=["GET", "POST"])
 def predict_page():
-    if 'username' not in session:
-        return redirect(url_for('login'))
+    if "username" not in session:
+        return redirect(url_for("login"))
 
-    if request.method == 'POST':
-        video = request.files.get('video')
-        if not video:
-            flash("❌ No video selected!", "danger")
-            return redirect(url_for('predict_page'))
+    if request.method == "POST":
+        try:
+            video = request.files.get("video")
+            if not video or video.filename == "":
+                flash("No video selected", "danger")
+                return redirect(url_for("predict_page"))
 
-        allowed = ('.mp4', '.avi', '.mkv', '.mov')
-        if not video.filename.lower().endswith(allowed):
-            flash("❌ Unsupported video format!", "danger")
-            return redirect(url_for('predict_page'))
+            save_path = os.path.join(UPLOAD_DIR, video.filename)
+            video.save(save_path)
 
-        os.makedirs("uploads", exist_ok=True)
-        save_path = os.path.join("uploads", video.filename)
-        video.save(save_path)
+            label, confidence = predict_video_file(save_path, model, device=device)
+            if label is None:
+                raise RuntimeError("Prediction failed")
 
-        result = predict_video_file(save_path, model, device=device)
-        if not result:
-            flash("❌ Prediction failed!", "danger")
-            return redirect(url_for('predict_page'))
+            session["label"] = label
+            session["confidence"] = confidence
+            return redirect(url_for("result_page", filename=video.filename))
 
-        label, confidence = result
-        session['label'] = label
-        session['confidence'] = float(confidence)
+        except Exception as e:
+            print("Prediction error:", e)
+            flash("Prediction failed. Try a smaller video.", "danger")
+            return redirect(url_for("predict_page"))
 
-        return redirect(url_for('result_page', filename=video.filename))
+    return render_template("predict.html")
 
-    return render_template('predict.html')
-
-
-# ---------- RESULT ----------
-@app.route('/result/<filename>')
+@app.route("/result/<filename>")
 def result_page(filename):
-    if 'label' not in session:
-        return redirect(url_for('predict_page'))
+    if "label" not in session:
+        return redirect(url_for("predict_page"))
 
-    return render_template('result.html',
-                           filename=filename,
-                           label=session['label'],
-                           confidence=session['confidence'])
+    return render_template(
+        "result.html",
+        filename=filename,
+        label=session["label"],
+        confidence=session["confidence"]
+    )
 
-
-# ---------- LOGOUT ----------
-@app.route('/logout')
+@app.route("/logout")
 def logout():
     session.clear()
-    flash("✔ Logged out successfully!", "info")
-    return redirect(url_for('index'))
+    return redirect(url_for("index"))
 
-
-# ---------- ADMIN PANEL (Protected) ----------
-@app.route('/admin')
+@app.route("/admin")
 def admin():
-    if 'username' not in session or session['username'] != "admin":
-        flash("⛔ Access Denied! Admin Only!", "danger")
-        return redirect(url_for('login'))
+    if session.get("username") != "admin":
+        return redirect(url_for("login"))
+    return render_template("admin.html", users=User.query.all())
 
-    users = User.query.all()
-    return render_template('admin.html', users=users)
-
-
-# ---------- DELETE USER ----------
-@app.route('/admin/delete/<int:user_id>', methods=['POST'])
+@app.route("/admin/delete/<int:user_id>", methods=["POST"])
 def delete_user(user_id):
-    if 'username' not in session or session['username'] != "admin":
-        flash("⛔ Access Denied!", "danger")
-        return redirect(url_for('login'))
+    if session.get("username") != "admin":
+        return redirect(url_for("login"))
 
     user = User.query.get(user_id)
-    if not user:
-        flash("❌ User not found!", "danger")
-        return redirect(url_for('admin'))
+    if user and user.username != "admin":
+        db.session.delete(user)
+        db.session.commit()
+    return redirect(url_for("admin"))
 
-    if user.username == "admin":
-        flash("⚠ Admin account cannot be deleted!", "warning")
-        return redirect(url_for('admin'))
-
-    db.session.delete(user)
-    db.session.commit()
-    flash(f"✔ User '{user.username}' deleted successfully!", "success")
-    return redirect(url_for('admin'))
-
-
-# ==================== RUN SERVER ====================
+# ==================== START ====================
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         create_admin_account()
-    app.run(debug=True)
+    app.run()
