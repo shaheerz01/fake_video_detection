@@ -27,10 +27,16 @@ class User(db.Model):
 bcrypt = Bcrypt(app)
 
 # ==================== LOAD ML MODEL ====================
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-model = VideoClassifier(pretrained=False).to(device)
-model.load_state_dict(torch.load("model/video_detector1.pth", map_location=device))
-model.eval()
+device = 'cpu'
+def load_model():
+    model = VideoClassifier(pretrained=False)
+    model.load_state_dict(
+        torch.load("model/video_detector1.pth", map_location="cpu")
+    )
+    model.eval()
+    return model
+
+model = load_model()
 
 # ==================== AUTO CREATE ADMIN ====================
 def create_admin_account():
